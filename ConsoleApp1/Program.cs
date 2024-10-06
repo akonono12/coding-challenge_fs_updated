@@ -12,7 +12,7 @@ string csharpClassDefinition = @"
                 public int Age { get; set; }
                 public string Gender { get; set; }
                 public long? DriverLicenceNumber { get; set; }
-                public List<Address> Addresses { get; set; }
+                public Address Addresses { get; set; }
 
                 public class Address
                 {

@@ -1,11 +1,9 @@
-﻿using System;
-using System.Reflection;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using System;
+using System.IO;
 using System.Linq;
-using System.Collections.Generic;
-using System.Collections;
-
+using System.Reflection;
 
 namespace coding_challenge_fs_updated.Infrastracture.Services
 {
@@ -14,24 +12,23 @@ namespace coding_challenge_fs_updated.Infrastracture.Services
 
         internal Type? CompileClassFromString(string classCode, string className)
         {
+          
             // Create a syntax tree from the class code
             var syntaxTree = CSharpSyntaxTree.ParseText(FormatProperToStringClass(classCode));
 
             var coreLibAssembly = Assembly.Load("System.Private.CoreLib").Location;
             var systemRuntimeAssembly = Assembly.Load("System.Runtime").Location;
-            var systemCollection = Assembly.Load("System.Collections").Location;
 
             // Compile the code into an in-memory assembly
             var compilation = CSharpCompilation.Create("DynamicAssembly")
                 .AddReferences(
                     MetadataReference.CreateFromFile(typeof(object).Assembly.Location),          // System.Object
-                    MetadataReference.CreateFromFile(coreLibAssembly),                           // System.Private.CoreLib
+                    MetadataReference.CreateFromFile(coreLibAssembly),                           // System.Private.CoreLib (contains System.Collections.Generic)
                     MetadataReference.CreateFromFile(systemRuntimeAssembly),                     // System.Runtime
-                    MetadataReference.CreateFromFile(typeof(List<>).Assembly.Location),          // System.Collections.Generic (List<>)
-                    MetadataReference.CreateFromFile(systemCollection)
+                    MetadataReference.CreateFromFile(typeof(List<>).Assembly.Location)          // Reference for System.Collections.Generic (List<>)
                 )
                 .AddSyntaxTrees(syntaxTree)
-                .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,usings: new[] { "System", "System.Collections.Generic"} ));
 
 
             // Emit the compiled assembly to memory
